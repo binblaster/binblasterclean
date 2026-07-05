@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bin Blasters — Residential Bin Cleaning</title>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    body { background:#0b2414; color:#edfce4; font-family:'DM Sans',sans-serif; margin:0; }
+    input,select,textarea { color-scheme:dark; }
+    select option { background:#1d3e27; color:#edfce4; }
+    html { scroll-behavior:smooth; }
+  </style>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+const { useState } = React;
+const WHY = [
+  { icon:"🛡️", title:"Eliminate Harmful Bacteria", body:"Trash bins harbor E. coli, salmonella, and listeria. A professional clean removes 99.9% of bacteria." },
+  { icon:"💧", title:"Eliminate Foul Odors", body:"Hot-water pressure washing neutralizes odor at the source — not just masks it." },
+  { icon:"🗑️", title:"Keep Pests Away", body:"Rats, raccoons, flies, and maggots are drawn to dirty bins. A clean bin removes what attracts them." },
+  { icon:"⭐", title:"Protect Your Family & Pets", body:"Kids and pets contact bins constantly. Regular cleaning keeps those surfaces safe." },
+  { icon:"⏱️", title:"Save Your Time", body:"Scrubbing a bin yourself takes 30+ minutes. We handle it so you can spend that time on what matters." },
+  { icon:"⚡", title:"Extend Bin Lifespan", body:"Acid from organic waste corrodes plastic. Routine cleaning prevents cracking and saves you a replacement." },
+];
+const STEPS = [
+  { num:"01", title:"Book Online", body:"Fill out the form below. Takes under 2 minutes." },
+  { num:"02", title:"We Show Up", body:"Our team arrives with a truck-mounted hot-water pressure washer." },
+  { num:"03", title:"We Blast & Sanitize", body:"We pressure-wash with 200°F water and sanitize every surface." },
+  { num:"04", title:"You Enjoy Clean Bins", body:"Bins are left clean, deodorized, and dry at your curb." },
+];
+const IS = { width:'100%', background:'#1d3e27', border:'1px solid rgba(144,216,46,0.15)', borderRadius:'6px', padding:'12px 16px', color:'#edfce4', fontSize:'14px', outline:'none', boxSizing:'border-box' };
+function Err({msg}){ return <div style={{display:'flex',gap:'6px',marginTop:'6px',color:'#d4183d',fontSize:'12px'}}>⚠ {msg}</div>; }
+function App(){
+  const [form,setForm]=useState({address:'',service:'',phone:'',email:'',date:'',time:'',util:false,notes:''});
+  const [done,setDone]=useState(false);
+  const [busy,setBusy]=useState(false);
+  const [err,setErr]=useState('');
+  const [errs,setErrs]=useState({});
+  const [menu,setMenu]=useState(false);
+  const set=(k,v)=>setForm(f=>({...f,[k]:v}));
+  const go=(id)=>{ document.getElementById(id)?.scrollIntoView({behavior:'smooth'}); setMenu(false); };
+  const validate=()=>{
+    const e={};
+    if(!form.address.trim()) e.address='Address is required.';
+    if(!form.service) e.service='Please select a service.';
+    if(!form.phone.trim()) e.phone='Phone number is required.';
+    if(!form.email.trim()) e.email='Email is required.';
+    else if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email='Enter a valid email.';
+    if(!form.date) e.date='Please pick a date.';
+    if(!form.time) e.time='Please pick a time.';
+    if(!form.util) e.util='Permission to use electricity and water is required.';
+    return e;
+  };
+  const submit=async(ev)=>{
+    ev.preventDefault();
+    const e=validate();
+    if(Object.keys(e).length>0){ setErrs(e); return; }
+    setErrs({}); setBusy(true); setErr('');
+    try{
+      const res=await fetch('https://formspree.io/f/mwvdrdaw',{
+        method:'POST', headers:{'Content-Type':'application/json',Accept:'application/json'},
+        body:JSON.stringify({'Service Address':form.address,'Service':form.service==='one'?'1 Bin — $15':'2 Bins — $30','Phone':form.phone,'Email':form.email,'Preferred Date':form.date,'Preferred Time':form.time,'Utility Permission':'Granted','Special Requests':form.notes||'None'})
+      });
+      if(res.ok) setDone(true); else setErr('Something went wrong. Please try again.');
+    } catch{ setErr('Network error. Please check your connection.'); }
+    finally{ setBusy(false); }
+  };
+  return (
+    <div style={{minHeight:'100vh',background:'#0b2414',color:'#edfce4',fontFamily:"'DM Sans',sans-serif"}}>
+      {/* NAV */}
+      <nav style={{position:'fixed',top:0,left:0,right:0,zIndex:50,background:'rgba(11,36,20,0.93)',backdropFilter:'blur(8px)',borderBottom:'1px solid rgba(144,216,46,0.15)'}}>
+        <div style={{maxWidth:'1100px',margin:'0 auto',padding:'0 20px',height:'64px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+          <button onClick={()=>go('hero')} style={{display:'flex',alignItems:'center',gap:'10px',background:'none',border:'none',cursor:'pointer'}}>
+            <div style={{width:'32px',height:'32px',borderRadius:'6px',background:'#90d82e',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'16px'}}>🗑</div>
+            <span style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:800,fontSize:'20px',color:'#edfce4',letterSpacing:'0.05em'}}>BIN BLASTERS</span>
+          </button>
+          <div style={{display:'flex',gap:'24px',alignItems:'center'}}>
+            {[['why','Why Clean'],['how','How It Works'],['book','Book Now']].map(([id,lbl])=>(
+              <button key={id} onClick={()=>go(id)} style={{background:'none',border:'none',cursor:'pointer',color:'#6ab855',fontSize:'14px',fontWeight:500}}>{lbl}</button>
+            ))}
+            <button onClick={()=>go('book')} style={{padding:'8px 18px',background:'#90d82e',color:'#0b1f0c',borderRadius:'6px',border:'none',cursor:'pointer',fontWeight:700,fontSize:'14px'}}>Book a Clean</button>
+          </div>
+        </div>
+      </nav>
+      {/* HERO */}
+      <section id="hero" style={{paddingTop:'64px',minHeight:'100vh',display:'flex',alignItems:'center',position:'relative',overflow:'hidden'}}>
+        <div style={{position:'absolute',inset:0,background:'linear-gradient(135deg,#0b2414 60%,rgba(29,62,39,0.5))'}}/>
+        <div style={{position:'relative',maxWidth:'1100px',margin:'0 auto',padding:'80px 20px'}}>
+          <div style={{display:'inline-flex',alignItems:'center',gap:'8px',padding:'6px 14px',borderRadius:'999px',border:'1px solid rgba(144,216,46,0.3)',background:'rgba(144,216,46,0.08)',color:'#90d82e',fontSize:'11px',fontWeight:700,textTransform:'uppercase',letterSpacing:'0.12em',marginBottom:'24px'}}>⚡ Residential Bin Cleaning</div>
+          <h1 style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:'clamp(60px,12vw,100px)',fontWeight:900,lineHeight:0.95,textTransform:'uppercase',color:'#edfce4',margin:'0 0 24px 0'}}>
+            BLAST YOUR<br/><span style={{color:'#90d82e'}}>BINS</span><br/>CLEAN.
+          </h1>
+          <p style={{color:'#6ab855',fontSize:'18px',lineHeight:1.7,maxWidth:'480px',marginBottom:'32px'}}>Hot-water pressure washing that eliminates bacteria, odors, and pests from your trash bins — right at your curb. Fast, affordable, and thorough.</p>
+          <div style={{display:'flex',flexWrap:'wrap',gap:'12px',marginBottom:'40px'}}>
+            <button onClick={()=>go('book')} style={{padding:'14px 28px',background:'#90d82e',color:'#0b1f0c',fontFamily:"'Barlow Condensed',sans-serif",fontWeight:900,fontSize:'18px',letterSpacing:'0.06em',textTransform:'uppercase',borderRadius:'6px',border:'none',cursor:'pointer'}}>BOOK A CLEAN</button>
+            <button onClick={()=>go('why')} style={{padding:'14px 28px',background:'transparent',color:'#edfce4',border:'1px solid rgba(144,216,46,0.25)',borderRadius:'6px',cursor:'pointer',fontSize:'15px',fontWeight:500}}>Why it matters</button>
+          </div>
+          <div style={{display:'flex',gap:'32px',alignItems:'center'}}>
+            {[['$15','1 bin'],['$30','2 bins'],['100%','satisfaction']].map(([v,l],i)=>(
+              <React.Fragment key={l}>
+                <div><div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:'32px',fontWeight:900,color:'#90d82e',lineHeight:1}}>{v}</div><div style={{fontSize:'11px',color:'#6ab855',textTransform:'uppercase',letterSpacing:'0.08em',marginTop:'2px'}}>{l}</div></div>
+                {i<2&&<div style={{width:'1px',height:'40px',background:'rgba(144,216,46,0.2)'}}/>}
+              </React.Fragment>
+            ))}
+          </div>
+        </div>
+      </section>
+      {/* WHY */}
+      <section id="why" style={{padding:'96px 20px',background:'rgba(29,62,39,0.2)'}}>
+        <div style={{maxWidth:'1100px',margin:'0 auto'}}>
+          <div style={{color:'#90d82e',fontSize:'11px',fontWeight:700,textTransform:'uppercase',letterSpacing:'0.12em',marginBottom:'12px'}}>Our Mission</div>
+          <h2 style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:'clamp(40px,7vw,64px)',fontWeight:900,textTransform:'uppercase',lineHeight:0.95,margin:'0 0 20px 0'}}>WHY YOUR BINS<br/><span style={{color:'#90d82e'}}>NEED A BLAST</span></h2>
+          <p style={{color:'#6ab855',fontSize:'17px',maxWidth:'600px',lineHeight:1.7,marginBottom:'48px'}}>Most people think a smelly bin is just an inconvenience. The reality is dirtier — and more dangerous. Bin Blasters exists to make clean, safe bins the standard for every home.</p>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(300px,1fr))',gap:'20px'}}>
+            {WHY.map(r=>(
+              <div key={r.title} style={{background:'#142b1c',border:'1px solid rgba(144,216,46,0.15)',borderRadius:'12px',padding:'24px'}}>
+                <div style={{fontSize:'28px',marginBottom:'14px'}}>{r.icon}</div>
+                <h3 style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:'22px',fontWeight:700,color:'#edfce4',margin:'0 0 8px 0'}}>{r.title}</h3>
+                <p style={{color:'#6ab855',fontSize:'14px',lineHeight:1.7,margin:0}}>{r.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+      {/* HOW */}
+      <section id="how" style={{padding:'96px 20px'}}>
+        <div style={{maxWidth:'1100px',margin:'0 auto'}}>
+          <div style={{color:'#90d82e',fontSize:'11px',fontWeight:700,textTransform:'uppercase',letterSpacing:'0.12em',marginBottom:'12px'}}>The Process</div>
+          <h2 style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:'clamp(40px,7vw,64px)',fontWeight:900,textTransform:'uppercase',lineHeight:0.95,margin:'0 0 48px 0'}}>HOW IT <span style={{color:'#90d82e'}}>WORKS</span></h2>
+          <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(220px,1fr))',gap:'32px'}}>
+            {STEPS.map(s=>(
+              <div key={s.num}>
+                <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:'64px',fontWeight:900,color:'rgba(144,216,46,0.15)',lineHeight:1,marginBottom:'12px'}}>{s.num}</div>
+                <h3 style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:'22px',fontWeight:700,color:'#edfce4',margin:'0 0 8px 0'}}>{s.title}</h3>
+                <p style={{color:'#6ab855',fontSize:'14px',lineHeight:1.7,margin:0}}>{s.body}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+      {/* BOOK */}
+      <section id="book" style={{padding:'96px 20px',background:'rgba(29,62,39,0.2)'}}>
+        <div style={{maxWidth:'1100px',margin:'0 auto'}}>
+          <div style={{color:'#90d82e',fontSize:'11px',fontWeight:700,textTransform:'uppercase',letterSpacing:'0.12em',marginBottom:'12px'}}>Ready to Book</div>
+          <h2 style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:'clamp(40px,7vw,64px)',fontWeight:900,textTransform:'uppercase',lineHeight:0.95,margin:'0 0 16px 0'}}>SCHEDULE YOUR<br/><span style={{color:'#90d82e'}}>CLEAN</span></h2>
+          <p style={{color:'#6ab855',fontSize:'16px',maxWidth:'480px',marginBottom:'40px'}}>Fill out the form below and we'll confirm your booking within a few hours.</p>
+          {done?(
+            <div style={{maxWidth:'480px',background:'#142b1c',border:'1px solid rgba(144,216,46,0.3)',borderRadius:'12px',padding:'48px 32px',textAlign:'center'}}>
+              <div style={{fontSize:'48px',marginBottom:'16px'}}>✅</div>
+              <h3 style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:'36px',fontWeight:900,textTransform:'uppercase',margin:'0 0 12px 0'}}>Booking Received!</h3>
+              <p style={{color:'#6ab855',fontSize:'14px',lineHeight:1.7,marginBottom:'24px'}}>Thanks for booking with Bin Blasters! We'll reach out to {form.email} to confirm your appointment on {form.date} at {form.time}.</p>
+              <button onClick={()=>{setDone(false);setForm({address:'',service:'',phone:'',email:'',date:'',time:'',util:false,notes:''});}} style={{padding:'10px 24px',background:'#90d82e',color:'#0b1f0c',borderRadius:'6px',border:'none',cursor:'pointer',fontWeight:700,fontSize:'14px'}}>Book Another</button>
+            </div>
+          ):(
+            <form onSubmit={submit} style={{maxWidth:'640px',display:'flex',flexDirection:'column',gap:'28px'}}>
+              <div>
+                <label style={{display:'block',fontSize:'14px',fontWeight:600,color:'#edfce4',marginBottom:'6px'}}>Service Address *</label>
+                <input type="text" placeholder="123 Maple Street, Springfield" value={form.address} onChange={e=>set('address',e.target.value)} style={IS}/>
+                {errs.address&&<Err msg={errs.address}/>}
+              </div>
+              <div>
+                <label style={{display:'block',fontSize:'14px',fontWeight:600,color:'#edfce4',marginBottom:'12px'}}>Select Service *</label>
+                <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'16px'}}>
+                  {[{v:'one',l:'1 Bin',p:'$15',d:'One trash or recycling bin'},{v:'two',l:'2 Bins',p:'$30',d:'Two bins — best value'}].map(({v,l,p,d})=>(
+                    <button type="button" key={v} onClick={()=>set('service',v)} style={{textAlign:'left',borderRadius:'12px',border:form.service===v?'1px solid #90d82e':'1px solid rgba(144,216,46,0.15)',background:form.service===v?'rgba(144,216,46,0.1)':'#142b1c',padding:'20px',cursor:'pointer',position:'relative'}}>
+                      {form.service===v&&<span style={{position:'absolute',top:'12px',right:'12px',color:'#90d82e',fontWeight:900}}>✓</span>}
+                      <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontSize:'28px',fontWeight:900,color:'#90d82e',lineHeight:1}}>{p}</div>
+                      <div style={{fontSize:'14px',fontWeight:600,color:'#edfce4',marginTop:'2px'}}>{l}</div>
+                      <div style={{fontSize:'12px',color:'#6ab855',marginTop:'2px'}}>{d}</div>
+                    </button>
+                  ))}
+                </div>
+                {errs.service&&<Err msg={errs.service}/>}
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'20px'}}>
+                <div>
+                  <label style={{display:'block',fontSize:'14px',fontWeight:600,color:'#edfce4',marginBottom:'6px'}}>Phone Number *</label>
+                  <input type="tel" placeholder="(555) 000-0000" value={form.phone} onChange={e=>set('phone',e.target.value)} style={IS}/>
+                  {errs.phone&&<Err msg={errs.phone}/>}
+                </div>
+                <div>
+                  <label style={{display:'block',fontSize:'14px',fontWeight:600,color:'#edfce4',marginBottom:'6px'}}>Email Address *</label>
+                  <input type="email" placeholder="you@example.com" value={form.email} onChange={e=>set('email',e.target.value)} style={IS}/>
+                  {errs.email&&<Err msg={errs.email}/>}
+                </div>
+              </div>
+              <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'20px'}}>
+                <div>
+                  <label style={{display:'block',fontSize:'14px',fontWeight:600,color:'#edfce4',marginBottom:'6px'}}>Preferred Date *</label>
+                  <input type="date" min={new Date().toISOString().split('T')[0]} value={form.date} onChange={e=>set('date',e.target.value)} style={IS}/>
+                  {errs.date&&<Err msg={errs.date}/>}
+                </div>
+                <div>
+                  <label style={{display:'block',fontSize:'14px',fontWeight:600,color:'#edfce4',marginBottom:'6px'}}>Preferred Time *</label>
+                  <select value={form.time} onChange={e=>set('time',e.target.value)} style={IS}>
+                    <option value="">Select a time</option>
+                    {['8:00 AM','9:00 AM','10:00 AM','11:00 AM','12:00 PM','1:00 PM','2:00 PM','3:00 PM','4:00 PM'].map(t=><option key={t} value={t}>{t}</option>)}
+                  </select>
+                  {errs.time&&<Err msg={errs.time}/>}
+                </div>
+              </div>
+              <div>
+                <div style={{borderRadius:'12px',border:form.util?'1px solid rgba(144,216,46,0.5)':'1px solid rgba(144,216,46,0.15)',background:form.util?'rgba(144,216,46,0.08)':'#142b1c',padding:'20px'}}>
+                  <div style={{display:'flex',alignItems:'flex-start',gap:'16px'}}>
+                    <div onClick={()=>set('util',!form.util)} style={{width:'20px',height:'20px',borderRadius:'4px',border:form.util?'2px solid #90d82e':'2px solid rgba(144,216,46,0.3)',background:form.util?'#90d82e':'transparent',display:'flex',alignItems:'center',justifyContent:'center',flexShrink:0,marginTop:'2px',cursor:'pointer',fontSize:'13px',color:'#0b1f0c',fontWeight:900}}>
+                      {form.util?'✓':''}
+                    </div>
+                    <div>
+                      <div style={{fontSize:'14px',fontWeight:600,color:'#edfce4',display:'flex',alignItems:'center',gap:'8px',flexWrap:'wrap'}}>
+                        Permission to Use Electricity & Water
+                        <span style={{fontSize:'11px',background:'rgba(212,24,61,0.2)',color:'#d4183d',padding:'2px 8px',borderRadius:'999px',fontWeight:600}}>Required</span>
+                      </div>
+                      <p style={{fontSize:'12px',color:'#6ab855',marginTop:'6px',lineHeight:1.6,margin:'6px 0 0 0'}}>Our equipment requires access to an outdoor water spigot and electrical outlet. By checking this, you confirm we have permission to use these utilities during the service.</p>
+                    </div>
+                  </div>
+                </div>
+                {errs.util&&<Err msg={errs.util}/>}
+              </div>
+              <div>
+                <label style={{display:'block',fontSize:'14px',fontWeight:600,color:'#edfce4',marginBottom:'6px'}}>Special Notes <span style={{color:'#6ab855',fontWeight:400}}>(optional)</span></label>
+                <textarea rows={4} placeholder="e.g. Dog in the backyard — heads up before opening gate. Gate code is 1234. Bins on the left side of house." value={form.notes} onChange={e=>set('notes',e.target.value)} style={{...IS,resize:'none'}}/>
+              </div>
+              <button type="submit" disabled={busy} style={{width:'100%',padding:'16px',background:busy?'rgba(144,216,46,0.5)':'#90d82e',color:'#0b1f0c',fontFamily:"'Barlow Condensed',sans-serif",fontWeight:900,fontSize:'20px',letterSpacing:'0.06em',textTransform:'uppercase',borderRadius:'6px',border:'none',cursor:busy?'not-allowed':'pointer'}}>
+                {busy?'Sending…':'Confirm Booking'}
+              </button>
+              {err&&<div style={{display:'flex',alignItems:'center',gap:'8px',color:'#d4183d',fontSize:'14px',background:'rgba(212,24,61,0.1)',border:'1px solid rgba(212,24,61,0.2)',borderRadius:'6px',padding:'12px 16px'}}>⚠ {err}</div>}
+              <p style={{fontSize:'12px',color:'#6ab855',textAlign:'center',margin:0}}>We'll confirm your appointment via email within a few hours.</p>
+            </form>
+          )}
+        </div>
+      </section>
+      {/* FOOTER */}
+      <footer style={{borderTop:'1px solid rgba(144,216,46,0.15)',padding:'40px 20px'}}>
+        <div style={{maxWidth:'1100px',margin:'0 auto',display:'flex',flexWrap:'wrap',alignItems:'center',justifyContent:'space-between',gap:'16px'}}>
+          <div style={{display:'flex',alignItems:'center',gap:'10px'}}>
+            <div style={{width:'28px',height:'28px',borderRadius:'6px',background:'#90d82e',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'14px'}}>🗑</div>
+            <span style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:800,fontSize:'18px',color:'#edfce4',letterSpacing:'0.05em'}}>BIN BLASTERS</span>
+          </div>
+          <p style={{fontSize:'12px',color:'#6ab855',margin:0}}>Residential trash bin cleaning — hot-water pressure washing at your curb.</p>
+          <p style={{fontSize:'12px',color:'#6ab855',margin:0}}>© {new Date().getFullYear()} Bin Blasters. All rights reserved.</p>
+        </div>
+      </footer>
+    </div>
+  );
+}
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+  </script>
+</body>
+</html>
