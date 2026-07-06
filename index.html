@@ -146,20 +146,23 @@ function App() {
       if (!slotRes.ok) throw new Error();
 
       // Send email notification
-      await fetch(FORMSPREE, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({
-          "Service Address": form.address,
-          "Service": form.service === "one" ? "1 Bin — $15" : "2 Bins — $25",
-          "Phone": form.phone,
-          "Email": form.email,
-          "Preferred Date": selectedDateInfo?.label ?? form.date,
-          "Preferred Time": form.time,
-          "Utility Permission": "Granted",
-          "Special Requests": form.notes || "None",
-        }),
-      });
+      const formData = new FormData();
+formData.append("Service Address", form.address);
+formData.append("Service", form.service === "one" ? "1 Bin — $15" : "2 Bins — $25");
+formData.append("Phone", form.phone);
+formData.append("Email", form.email);
+formData.append("Preferred Date", selectedDateInfo?.label ?? form.date);
+formData.append("Preferred Time", form.time);
+formData.append("Utility Permission", "Granted");
+formData.append("Special Requests", form.notes || "None");
+
+await fetch(FORMSPREE, {
+  method: "POST",
+  body: formData,
+  headers: {
+    Accept: "application/json"
+  }
+});
       setDone(true);
     } catch {
       setErr("Something went wrong. Please try again or call us directly.");
